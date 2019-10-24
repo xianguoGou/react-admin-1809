@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+<div>
+  <span id="counterDom">1</span>
+  <button onclick="add()">加</button>
+  <button onclick="addFive(5)">加5</button>
+</div>
+<script src="https://cdn.bootcss.com/redux/4.0.1/redux.min.js"></script>
+<script>
+
+const actionType = {
+  ADD: 'ADD',
+  ADD_FIVE: 'ADD_FIVE'
+}
+
+// 定义一个初始的状态
+const initCounter = {
+    n: 10
+  }
+// 定义一个reducer, reducer是一个纯函数(Pure Function)
+// reducer有两个参数，第一个参数是状态(state), 这会儿一般会把默认值给传入，而在程序的运行过程中，这个state实际上是上一次动作处理之后的state
+// 第二个参数是action, 这个action可以是一个对象，还可以是一个方法返回一个对象（如果是这种方法返回对象的形式，就叫做actionCreator）
+// 一旦在store里dispatch一个action，reducer会自动执行
+const countReducer = (state = initCounter, action) => {
+  // 由于传入的action里面一般会包含type字段，表示你要做什么，这个type就叫做actionType
+  // 因为reducer会在接收到动作之后自动执行，所以，在这里会通过判断 action.type不同而返回不同的state
+  switch(action.type) {
+    case actionType.ADD:
+      return {
+        ...state,
+        n: state.n + 1
+      }
+    case actionType.ADD_FIVE:
+      return {
+        ...state,
+        n: state.n + 5
+      }
+    default:
+      return state
+  }
+}
+
+
+// Redux.combineReducers是用于联合多个reducer，里面接收一个对象做为参数，但是对象的value必须是reducer
+const rootReducer = Redux.combineReducers({
+  countReducer
+})
+
+// 使用Redux.createStore创建一个store, 这个方法的第一个参数就是合成之后的reducers, 或者单个reducer
+const store = Redux.createStore(rootReducer)
+
+
+// 定义一个方法，用于改变操作dom，或者做其它的操作
+const setCounterHtml = () => {
+  // 这个方法的作用主要是用于取出store里的某个值。 通过store.getState()
+  document.querySelector('#counterDom').innerHTML = store.getState().countReducer.n
+}
+
+// 需要执行一次，才能设置初始值
+setCounterHtml()
+// 由于我们需要在store的state改变的时候，自动去执行操作dom的那个方法，所以需要用store.subscribe(方法名)来创建监听
+store.subscribe(setCounterHtml)
+
+// 这个是dom的click方法
+const add = () => {
+  // 通过store.dispatch(action)来分发一个action,从而触发reducer
+  store.dispatch({
+    type: actionType.ADD
+  })
+}
+
+const addFive = (number) => {
+  store.dispatch({
+    type: actionType.ADD_FIVE,
+    payload: {
+      number
+    }
+  })
+}
+
+</script>
+</body>
+</html>
